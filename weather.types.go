@@ -3,11 +3,11 @@ package main
 import "time"
 
 type Weather struct {
-	ID          string    `json:"id"`
-	Temperature float64   `json:"temperature"`
-	Humidity    float64   `json:"humidity"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	ID          string     `json:"id"`
+	Temperature float64    `json:"temperature"`
+	Humidity    float64    `json:"humidity"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
 }
 
 type CreateWeatherRequest struct {

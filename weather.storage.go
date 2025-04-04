@@ -14,7 +14,7 @@ func (s *PostgresStore) CreateWeatherTable() error {
             temperature FLOAT NOT NULL,
             humidity FLOAT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            updated_at TIMESTAMP NULL
         )
     `)
 	if err != nil {
@@ -40,7 +40,11 @@ func (s *PostgresStore) CreateWeatherTable() error {
             CREATE OR REPLACE FUNCTION update_timestamp()
             RETURNS TRIGGER AS $$
             BEGIN
-                NEW.updated_at = NOW();
+                -- Only set updated_at when the record is actually modified
+                -- (and not during the initial insert)
+                IF OLD.temperature <> NEW.temperature OR OLD.humidity <> NEW.humidity THEN
+                    NEW.updated_at = NOW();
+                END IF;
                 RETURN NEW;
             END;
             $$ LANGUAGE plpgsql;
@@ -93,8 +97,8 @@ func (s *PostgresStore) CreateWeatherTable() error {
 
 func (s *PostgresStore) CreateWeather(weather *Weather) error {
 	query := `
-		INSERT INTO weather (temperature, humidity) 
-		VALUES ($1, $2)
+		INSERT INTO weather (temperature, humidity, updated_at) 
+		VALUES ($1, $2, NULL)
 		RETURNING id
 	`
 
