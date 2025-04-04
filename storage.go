@@ -5,6 +5,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
+type Storage interface {
+	CreateWeather(weather *Weather) error
+	GetWeatherByID(id string) (*Weather, error)
+}
+
 type PostgresStore struct {
 	db *sql.DB
 }

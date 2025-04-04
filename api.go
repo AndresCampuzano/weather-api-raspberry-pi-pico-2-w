@@ -13,19 +13,22 @@ import (
 // APIServer represents an HTTP server for handling API requests.
 type APIServer struct {
 	listenAddr string
+	store      Storage
 	Router     *mux.Router
 }
 
 // NewAPIServer creates a new instance of APIServer.
-func NewAPIServer(listenAddr string) *APIServer {
+func NewAPIServer(listenAddr string, store Storage) *APIServer {
 	router := mux.NewRouter()
 
 	server := &APIServer{
 		listenAddr: listenAddr,
+		store:      store,
 		Router:     router,
 	}
 
 	router.HandleFunc("/api/healthcheck", makeHTTPHandlerFunc(server.handleHealth))
+	router.HandleFunc("/api/weather", makeHTTPHandlerFunc(server.handleWeather))
 
 	return server
 }
@@ -58,6 +61,16 @@ func (server *APIServer) handleHealth(w http.ResponseWriter, r *http.Request) er
 	switch r.Method {
 	case http.MethodGet:
 		return server.handleHealthCheck(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}
+
+// handleWeather handles weather data retrieval.
+func (server *APIServer) handleWeather(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodPost:
+		return server.handleCreateWeather(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}
