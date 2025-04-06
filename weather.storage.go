@@ -150,3 +150,48 @@ func scanIntoWeather(rows *sql.Rows) (*Weather, error) {
 
 	return expense, err
 }
+
+func (s *PostgresStore) GetWeathers() ([]*Weather, error) {
+	rows, err := s.db.Query("SELECT * FROM weather")
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
+	var weathers []*Weather
+	for rows.Next() {
+		expense, err := scanIntoWeather(rows)
+		if err != nil {
+			return nil, err
+		}
+		weathers = append(weathers, expense)
+	}
+
+	return weathers, nil
+}
+
+func (s *PostgresStore) UpdateWeather(weather *Weather) error {
+	query := `
+		UPDATE weather 
+		SET temperature = $1, humidity = $2, updated_at = NOW() 
+		WHERE id = $3
+	`
+
+	_, err := s.db.Exec(
+		query,
+		weather.Temperature,
+		weather.Humidity,
+		weather.ID,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -31,5 +31,57 @@ func (server *APIServer) handleCreateWeather(w http.ResponseWriter, r *http.Requ
 	}
 
 	return WriteJSON(w, http.StatusOK, createdWeather)
-	//return WriteJSON(w, http.StatusOK, weather)
+}
+
+func (server *APIServer) handleGetWeatherByID(w http.ResponseWriter, r *http.Request) error {
+	id, err := getID(r)
+	if err != nil {
+		return err
+	}
+
+	weather, err := server.store.GetWeatherByID(id)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, weather)
+}
+
+func (server *APIServer) handleGetWeathers(w http.ResponseWriter, _ *http.Request) error {
+	weathers, err := server.store.GetWeathers()
+	if err != nil {
+		return err
+	}
+	return WriteJSON(w, http.StatusOK, weathers)
+}
+
+func (server *APIServer) handleUpdateWeather(w http.ResponseWriter, r *http.Request) error {
+	id, err := getID(r)
+	if err != nil {
+		return err
+	}
+
+	_, err = server.store.GetWeatherByID(id)
+	if err != nil {
+		return err
+	}
+
+	var weather Weather
+	if err := json.NewDecoder(r.Body).Decode(&weather); err != nil {
+		return err
+	}
+
+	weather.ID = id
+
+	if err := server.store.UpdateWeather(&weather); err != nil {
+		return err
+	}
+
+	// Recovering data from DB to get the most up-to-date data
+	updatedWeather, err := server.store.GetWeatherByID(weather.ID)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, updatedWeather)
 }

@@ -29,6 +29,7 @@ func NewAPIServer(listenAddr string, store Storage) *APIServer {
 
 	router.HandleFunc("/api/healthcheck", makeHTTPHandlerFunc(server.handleHealth))
 	router.HandleFunc("/api/weather", makeHTTPHandlerFunc(server.handleWeather))
+	router.HandleFunc("/api/weather/{id}", makeHTTPHandlerFunc(server.handleWeatherWithID))
 
 	return server
 }
@@ -69,8 +70,24 @@ func (server *APIServer) handleHealth(w http.ResponseWriter, r *http.Request) er
 // handleWeather handles weather data retrieval.
 func (server *APIServer) handleWeather(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetWeathers(w, r)
 	case http.MethodPost:
 		return server.handleCreateWeather(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}
+
+// handleWeatherWithID handles weather data retrieval by ID.
+func (server *APIServer) handleWeatherWithID(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetWeatherByID(w, r)
+	case http.MethodPut:
+		return server.handleUpdateWeather(w, r)
+	//case http.MethodDelete:
+	//	return server.handleDeleteWeather(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}

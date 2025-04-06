@@ -2,6 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 )
@@ -36,4 +39,16 @@ func makeHTTPHandlerFunc(f apiFunc) http.HandlerFunc {
 			}
 		}
 	}
+}
+
+// getID extracts the ID parameter from the URL path of the HTTP request r.
+// It returns the extracted ID and an error if the ID is invalid or not found in the request.
+func getID(r *http.Request) (string, error) {
+	id := mux.Vars(r)["id"]
+
+	_, err := uuid.Parse(id)
+	if err != nil {
+		return id, fmt.Errorf("invalid user id %s: %v", id, err)
+	}
+	return id, nil
 }
