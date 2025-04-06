@@ -7,10 +7,10 @@ import (
 )
 
 func NewPostgresStore() (*PostgresStore, error) {
-	user := os.Getenv("RENDER_USER")
-	password := os.Getenv("RENDER_PASSWORD")
-	dbname := os.Getenv("RENDER_DB_NAME")
-	endpoint := os.Getenv("RENDER_DB_HOST")
+	user := os.Getenv("POSTGRES_USER")
+	password := os.Getenv("POSTGRES_PASSWORD")
+	dbname := os.Getenv("POSTGRES_DB_NAME")
+	endpoint := os.Getenv("POSTGRES_DB_HOST")
 
 	connStr := fmt.Sprintf("user=%s password=%s dbname=%s host=%s sslmode=require", user, password, dbname, endpoint)
 
