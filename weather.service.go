@@ -11,9 +11,16 @@ func (server *APIServer) handleCreateWeather(w http.ResponseWriter, r *http.Requ
 		return err
 	}
 
+	// Verify the city exists first
+	_, err := server.store.GetCityByID(req.CityID)
+	if err != nil {
+		return err
+	}
+
 	weather, err := NewWeather(
 		req.Temperature,
 		req.Humidity,
+		req.CityID,
 	)
 	if err != nil {
 		return err
@@ -72,6 +79,14 @@ func (server *APIServer) handleUpdateWeather(w http.ResponseWriter, r *http.Requ
 	}
 
 	weather.ID = id
+
+	// Verify the city exists
+	if weather.CityID != "" {
+		_, err = server.store.GetCityByID(weather.CityID)
+		if err != nil {
+			return err
+		}
+	}
 
 	if err := server.store.UpdateWeather(&weather); err != nil {
 		return err

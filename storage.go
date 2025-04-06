@@ -26,12 +26,14 @@ type PostgresStore struct {
 }
 
 func (s *PostgresStore) Init() error {
-	err := s.CreateWeatherTable()
+	// First create the cities table since weather table has a foreign key to it
+	err := s.CreateCityTable()
 	if err != nil {
 		return err
 	}
 
-	err = s.CreateCityTable()
+	// Then create the weather table which references cities
+	err = s.CreateWeatherTable()
 	if err != nil {
 		return err
 	}

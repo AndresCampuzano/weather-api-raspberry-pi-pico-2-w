@@ -13,8 +13,10 @@ func (s *PostgresStore) CreateWeatherTable() error {
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             temperature FLOAT NOT NULL,
             humidity FLOAT NOT NULL,
+            city_id UUID NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP NULL
+            updated_at TIMESTAMP NULL,
+            FOREIGN KEY (city_id) REFERENCES cities(id)
         )
     `)
 	if err != nil {
@@ -42,7 +44,7 @@ func (s *PostgresStore) CreateWeatherTable() error {
             BEGIN
                 -- Only set updated_at when the record is actually modified
                 -- (and not during the initial insert)
-                IF OLD.temperature <> NEW.temperature OR OLD.humidity <> NEW.humidity THEN
+                IF OLD.temperature <> NEW.temperature OR OLD.humidity <> NEW.humidity OR OLD.city_id <> NEW.city_id THEN
                     NEW.updated_at = NOW();
                 END IF;
                 RETURN NEW;
@@ -97,8 +99,8 @@ func (s *PostgresStore) CreateWeatherTable() error {
 
 func (s *PostgresStore) CreateWeather(weather *Weather) error {
 	query := `
-		INSERT INTO weather (temperature, humidity, updated_at) 
-		VALUES ($1, $2, NULL)
+		INSERT INTO weather (temperature, humidity, city_id, updated_at) 
+		VALUES ($1, $2, $3, NULL)
 		RETURNING id
 	`
 
@@ -107,6 +109,7 @@ func (s *PostgresStore) CreateWeather(weather *Weather) error {
 		query,
 		weather.Temperature,
 		weather.Humidity,
+		weather.CityID,
 	).Scan(&id)
 	if err != nil {
 		return err
@@ -135,20 +138,21 @@ func (s *PostgresStore) GetWeatherByID(id string) (*Weather, error) {
 		return scanIntoWeather(rows)
 	}
 
-	return nil, fmt.Errorf("expense [%s] not found", id)
+	return nil, fmt.Errorf("weather [%s] not found", id)
 }
 
 func scanIntoWeather(rows *sql.Rows) (*Weather, error) {
-	expense := new(Weather)
+	weather := new(Weather)
 	err := rows.Scan(
-		&expense.ID,
-		&expense.Temperature,
-		&expense.Humidity,
-		&expense.CreatedAt,
-		&expense.UpdatedAt,
+		&weather.ID,
+		&weather.Temperature,
+		&weather.Humidity,
+		&weather.CityID,
+		&weather.CreatedAt,
+		&weather.UpdatedAt,
 	)
 
-	return expense, err
+	return weather, err
 }
 
 func (s *PostgresStore) GetWeathers() ([]*Weather, error) {
@@ -179,14 +183,15 @@ func (s *PostgresStore) GetWeathers() ([]*Weather, error) {
 func (s *PostgresStore) UpdateWeather(weather *Weather) error {
 	query := `
 		UPDATE weather 
-		SET temperature = $1, humidity = $2, updated_at = NOW() 
-		WHERE id = $3
+		SET temperature = $1, humidity = $2, city_id = $3, updated_at = NOW() 
+		WHERE id = $4
 	`
 
 	_, err := s.db.Exec(
 		query,
 		weather.Temperature,
 		weather.Humidity,
+		weather.CityID,
 		weather.ID,
 	)
 	if err != nil {
