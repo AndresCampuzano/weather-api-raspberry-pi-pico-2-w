@@ -10,6 +10,7 @@ type Storage interface {
 	GetWeatherByID(id string) (*Weather, error)
 	GetWeathers() ([]*Weather, error)
 	UpdateWeather(weather *Weather) error
+	DeleteWeather(id string) error
 }
 
 type PostgresStore struct {

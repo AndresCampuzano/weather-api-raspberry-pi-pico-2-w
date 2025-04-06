@@ -195,3 +195,17 @@ func (s *PostgresStore) UpdateWeather(weather *Weather) error {
 
 	return nil
 }
+
+func (s *PostgresStore) DeleteWeather(id string) error {
+	query := `
+		DELETE FROM weather 
+		WHERE id = $1
+	`
+
+	_, err := s.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

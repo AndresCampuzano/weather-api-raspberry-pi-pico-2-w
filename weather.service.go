@@ -85,3 +85,17 @@ func (server *APIServer) handleUpdateWeather(w http.ResponseWriter, r *http.Requ
 
 	return WriteJSON(w, http.StatusOK, updatedWeather)
 }
+
+func (server *APIServer) handleDeleteWeather(w http.ResponseWriter, r *http.Request) error {
+	id, err := getID(r)
+	if err != nil {
+		return err
+	}
+
+	err = server.store.DeleteWeather(id)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, map[string]string{"deleted": id})
+}

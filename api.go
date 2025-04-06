@@ -86,8 +86,8 @@ func (server *APIServer) handleWeatherWithID(w http.ResponseWriter, r *http.Requ
 		return server.handleGetWeatherByID(w, r)
 	case http.MethodPut:
 		return server.handleUpdateWeather(w, r)
-	//case http.MethodDelete:
-	//	return server.handleDeleteWeather(w, r)
+	case http.MethodDelete:
+		return server.handleDeleteWeather(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}
