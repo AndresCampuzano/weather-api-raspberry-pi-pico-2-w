@@ -30,6 +30,8 @@ func NewAPIServer(listenAddr string, store Storage) *APIServer {
 	router.HandleFunc("/api/healthcheck", makeHTTPHandlerFunc(server.handleHealth))
 	router.HandleFunc("/api/weather", makeHTTPHandlerFunc(server.handleWeather))
 	router.HandleFunc("/api/weather/{id}", makeHTTPHandlerFunc(server.handleWeatherWithID))
+	router.HandleFunc("/api/cities", makeHTTPHandlerFunc(server.handleCity))
+	router.HandleFunc("/api/cities/{id}", makeHTTPHandlerFunc(server.handleCityWithID))
 
 	return server
 }
@@ -88,6 +90,32 @@ func (server *APIServer) handleWeatherWithID(w http.ResponseWriter, r *http.Requ
 		return server.handleUpdateWeather(w, r)
 	case http.MethodDelete:
 		return server.handleDeleteWeather(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}
+
+// handleCity handles city data operations.
+func (server *APIServer) handleCity(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetCities(w, r)
+	case http.MethodPost:
+		return server.handleCreateCity(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}
+
+// handleCityWithID handles city data operations by ID.
+func (server *APIServer) handleCityWithID(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetCityByID(w, r)
+	case http.MethodPut:
+		return server.handleUpdateCity(w, r)
+	case http.MethodDelete:
+		return server.handleDeleteCity(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}
