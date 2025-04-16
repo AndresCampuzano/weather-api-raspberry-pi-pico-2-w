@@ -32,6 +32,7 @@ func NewAPIServer(listenAddr string, store Storage) *APIServer {
 	router.HandleFunc("/api/weather/{id}", makeHTTPHandlerFunc(server.handleWeatherWithID))
 	router.HandleFunc("/api/cities", makeHTTPHandlerFunc(server.handleCity))
 	router.HandleFunc("/api/cities/{id}", makeHTTPHandlerFunc(server.handleCityWithID))
+	router.HandleFunc("/api/predictions", makeHTTPHandlerFunc(server.handlePrediction))
 
 	return server
 }
@@ -116,6 +117,16 @@ func (server *APIServer) handleCityWithID(w http.ResponseWriter, r *http.Request
 		return server.handleUpdateCity(w, r)
 	case http.MethodDelete:
 		return server.handleDeleteCity(w, r)
+	default:
+		return fmt.Errorf("unsupported method: %s", r.Method)
+	}
+}
+
+// handlePrediction handles prediction creation.
+func (server *APIServer) handlePrediction(w http.ResponseWriter, r *http.Request) error {
+	switch r.Method {
+	case http.MethodPost:
+		return server.handleCreatePrediction(w, r)
 	default:
 		return fmt.Errorf("unsupported method: %s", r.Method)
 	}

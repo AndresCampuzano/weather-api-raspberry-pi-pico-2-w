@@ -20,6 +20,10 @@ type Storage interface {
 	GetCities() ([]*City, error)
 	UpdateCity(city *City) error
 	DeleteCity(id string) error
+
+	// Prediction operations
+	CreatePrediction(prediction *Prediction) error
+	GetPredictionByID(id string) (*Prediction, error)
 }
 
 type PostgresStore struct {
@@ -35,6 +39,12 @@ func (s *PostgresStore) Init() error {
 
 	// Then create the weather table which references cities
 	err = s.CreateWeatherTable()
+	if err != nil {
+		return err
+	}
+
+	// Finally create the predictions table
+	err = s.CreatePredictionTable()
 	if err != nil {
 		return err
 	}
