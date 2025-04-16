@@ -10,6 +10,7 @@ type Storage interface {
 	CreateWeather(weather *Weather) error
 	GetWeatherByID(id string) (*Weather, error)
 	GetWeathers() ([]*Weather, error)
+	GetWeathersByCityID(cityID string) ([]*Weather, error)
 	UpdateWeather(weather *Weather) error
 	DeleteWeather(id string) error
 

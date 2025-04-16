@@ -54,8 +54,17 @@ func (server *APIServer) handleGetWeatherByID(w http.ResponseWriter, r *http.Req
 	return WriteJSON(w, http.StatusOK, weather)
 }
 
-func (server *APIServer) handleGetWeathers(w http.ResponseWriter, _ *http.Request) error {
-	weathers, err := server.store.GetWeathers()
+func (server *APIServer) handleGetWeathers(w http.ResponseWriter, r *http.Request) error {
+	cityID := r.URL.Query().Get("city_id")
+	var weathers []*Weather
+	var err error
+
+	if cityID != "" {
+		weathers, err = server.store.GetWeathersByCityID(cityID)
+	} else {
+		weathers, err = server.store.GetWeathers()
+	}
+
 	if err != nil {
 		return err
 	}

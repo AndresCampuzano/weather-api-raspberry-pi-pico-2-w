@@ -141,6 +141,31 @@ func (s *PostgresStore) GetWeatherByID(id string) (*Weather, error) {
 	return nil, fmt.Errorf("weather [%s] not found", id)
 }
 
+func (s *PostgresStore) GetWeathersByCityID(cityID string) ([]*Weather, error) {
+	rows, err := s.db.Query("SELECT * FROM weather WHERE city_id = $1", cityID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
+	var weathers []*Weather
+	for rows.Next() {
+		weather, err := scanIntoWeather(rows)
+		if err != nil {
+			return nil, err
+		}
+		weathers = append(weathers, weather)
+	}
+
+	return weathers, nil
+}
+
 func scanIntoWeather(rows *sql.Rows) (*Weather, error) {
 	weather := new(Weather)
 	err := rows.Scan(
