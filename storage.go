@@ -13,6 +13,7 @@ type Storage interface {
 	GetWeathersByCityID(cityID string) ([]*Weather, error)
 	UpdateWeather(weather *Weather) error
 	DeleteWeather(id string) error
+	GetHourlyAveragesByCityID(cityID string) ([]map[string]interface{}, error)
 
 	// City operations
 	CreateCity(city *City) error

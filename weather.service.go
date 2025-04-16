@@ -56,6 +56,21 @@ func (server *APIServer) handleGetWeatherByID(w http.ResponseWriter, r *http.Req
 
 func (server *APIServer) handleGetWeathers(w http.ResponseWriter, r *http.Request) error {
 	cityID := r.URL.Query().Get("city_id")
+	hourlyAverage := r.URL.Query().Get("hourly_average") == "true"
+
+	if hourlyAverage {
+		if cityID == "" {
+			return WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "city_id is required for hourly averages"})
+		}
+
+		averages, err := server.store.GetHourlyAveragesByCityID(cityID)
+		if err != nil {
+			return err
+		}
+
+		return WriteJSON(w, http.StatusOK, averages)
+	}
+
 	var weathers []*Weather
 	var err error
 

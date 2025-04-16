@@ -166,6 +166,49 @@ func (s *PostgresStore) GetWeathersByCityID(cityID string) ([]*Weather, error) {
 	return weathers, nil
 }
 
+func (s *PostgresStore) GetHourlyAveragesByCityID(cityID string) ([]map[string]interface{}, error) {
+	query := `
+		SELECT 
+			date_trunc('hour', created_at) AS hour,
+			AVG(temperature) AS avg_temperature,
+			AVG(humidity) AS avg_humidity
+		FROM weather
+		WHERE city_id = $1
+		GROUP BY hour
+		ORDER BY hour
+	`
+
+	rows, err := s.db.Query(query, cityID)
+	if err != nil {
+		return nil, err
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
+	var results []map[string]interface{}
+	for rows.Next() {
+		var hour string
+		var avgTemperature, avgHumidity float64
+
+		err := rows.Scan(&hour, &avgTemperature, &avgHumidity)
+		if err != nil {
+			return nil, err
+		}
+
+		results = append(results, map[string]interface{}{
+			"hour":        hour,
+			"temperature": avgTemperature,
+			"humidity":    avgHumidity,
+		})
+	}
+
+	return results, nil
+}
+
 func scanIntoWeather(rows *sql.Rows) (*Weather, error) {
 	weather := new(Weather)
 	err := rows.Scan(

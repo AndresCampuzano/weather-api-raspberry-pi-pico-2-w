@@ -8,7 +8,7 @@ import (
 
 func (s *PostgresStore) CreatePredictionTable() error {
 	// Create the table if it doesn't exist
-	_, err := s.db.Exec(`
+	_, err := s.db.Exec(`	
         CREATE TABLE IF NOT EXISTS predictions (
             id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
             city_id UUID NOT NULL,
