@@ -7,6 +7,8 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 // WriteJSON writes the given data as JSON to the HTTP response with the provided status code.
@@ -51,4 +53,33 @@ func getID(r *http.Request) (string, error) {
 		return id, fmt.Errorf("invalid user id %s: %v", id, err)
 	}
 	return id, nil
+}
+
+// FilterLastNAverages filters the last N averages from the provided averages slice.
+func FilterLastNAverages(averages []map[string]interface{}, getLast string) ([]map[string]interface{}, error) {
+	lastN, err := strconv.Atoi(getLast)
+	if err != nil {
+		return nil, fmt.Errorf("get_last must be a number")
+	}
+	if lastN > len(averages) {
+		lastN = len(averages)
+	}
+	return averages[len(averages)-lastN:], nil
+}
+
+// FilterWeathersByLastHours filters weathers created within the last N hours.
+func FilterWeathersByLastHours(weathers []*Weather, getLast string) ([]*Weather, error) {
+	lastHours, err := strconv.Atoi(getLast)
+	if err != nil {
+		return nil, fmt.Errorf("get_last must be a number")
+	}
+
+	cutoffTime := time.Now().Add(-time.Duration(lastHours) * time.Hour)
+	var filteredWeathers []*Weather
+	for _, weather := range weathers {
+		if weather.CreatedAt.After(cutoffTime) {
+			filteredWeathers = append(filteredWeathers, weather)
+		}
+	}
+	return filteredWeathers, nil
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 func (server *APIServer) handleCreateWeather(w http.ResponseWriter, r *http.Request) error {
@@ -76,15 +75,10 @@ func (server *APIServer) handleGetWeathers(w http.ResponseWriter, r *http.Reques
 		averages, err := server.store.GetHourlyAveragesByCityID(cityID)
 
 		if getLast != "" {
-			// return the last N averages
-			lastN, err := strconv.Atoi(getLast)
+			averages, err = FilterLastNAverages(averages, getLast)
 			if err != nil {
-				return WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "get_last must be a number"})
+				return WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 			}
-			if lastN > len(averages) {
-				lastN = len(averages)
-			}
-			averages = averages[len(averages)-lastN:]
 		}
 		if err != nil {
 			return err
@@ -103,20 +97,10 @@ func (server *APIServer) handleGetWeathers(w http.ResponseWriter, r *http.Reques
 	}
 
 	if getLast != "" {
-		// Filter by the last N hours using created_at
-		lastHours, err := strconv.Atoi(getLast)
+		weathers, err = FilterWeathersByLastHours(weathers, getLast)
 		if err != nil {
-			return WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "get_last must be a number"})
+			return WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 		}
-
-		cutoffTime := time.Now().Add(-time.Duration(lastHours) * time.Hour)
-		var filteredWeathers []*Weather
-		for _, weather := range weathers {
-			if weather.CreatedAt.After(cutoffTime) {
-				filteredWeathers = append(filteredWeathers, weather)
-			}
-		}
-		weathers = filteredWeathers
 	}
 
 	if err != nil {
