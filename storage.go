@@ -25,6 +25,7 @@ type Storage interface {
 	// Prediction operations
 	CreatePrediction(prediction *Prediction) error
 	GetPredictionByID(id string) (*Prediction, error)
+	GetPredictionsByCityID(cityID string) ([]*Prediction, error)
 }
 
 type PostgresStore struct {

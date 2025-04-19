@@ -137,6 +137,30 @@ func (s *PostgresStore) GetPredictionByID(id string) (*Prediction, error) {
 	return nil, fmt.Errorf("prediction [%s] not found", id)
 }
 
+func (s *PostgresStore) GetPredictionsByCityID(cityID string) ([]*Prediction, error) {
+	rows, err := s.db.Query("SELECT * FROM predictions WHERE city_id = $1 ORDER BY forecast_for", cityID)
+	if err != nil {
+		return nil, err
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(rows)
+
+	var predictions []*Prediction
+	for rows.Next() {
+		prediction, err := scanIntoPrediction(rows)
+		if err != nil {
+			return nil, err
+		}
+		predictions = append(predictions, prediction)
+	}
+
+	return predictions, nil
+}
+
 func scanIntoPrediction(rows *sql.Rows) (*Prediction, error) {
 	prediction := new(Prediction)
 	err := rows.Scan(

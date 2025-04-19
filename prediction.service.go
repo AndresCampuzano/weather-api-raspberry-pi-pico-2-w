@@ -45,3 +45,17 @@ func (server *APIServer) handleCreatePrediction(w http.ResponseWriter, r *http.R
 
 	return WriteJSON(w, http.StatusOK, createdPredictions)
 }
+
+func (server *APIServer) handleGetPredictions(w http.ResponseWriter, r *http.Request) error {
+	cityID := r.URL.Query().Get("city_id")
+	if cityID == "" {
+		return WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "city_id is required"})
+	}
+
+	predictions, err := server.store.GetPredictionsByCityID(cityID)
+	if err != nil {
+		return err
+	}
+
+	return WriteJSON(w, http.StatusOK, predictions)
+}

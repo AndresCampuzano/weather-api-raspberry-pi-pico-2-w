@@ -125,6 +125,8 @@ func (server *APIServer) handleCityWithID(w http.ResponseWriter, r *http.Request
 // handlePrediction handles prediction creation.
 func (server *APIServer) handlePrediction(w http.ResponseWriter, r *http.Request) error {
 	switch r.Method {
+	case http.MethodGet:
+		return server.handleGetPredictions(w, r)
 	case http.MethodPost:
 		return server.handleCreatePrediction(w, r)
 	default:
